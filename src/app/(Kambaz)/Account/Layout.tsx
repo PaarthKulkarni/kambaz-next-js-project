@@ -3,13 +3,17 @@ import AccountNavigation from "./Navigation";
 export default function AccountLayout({ children }: Readonly<{ children: ReactNode }>) {
  return (
    <div id="wd-kambaz">
-         <div className="d-flex">
-           <div className="d-none d-md-block">
+     <table>
+       <tbody>
+         <tr>
+           <td valign="top">
              <AccountNavigation />
-            </div>
-           <div className="flex-fill">
+           </td>
+           <td valign="top" width="100%">
              {children}
-             </div>
-             </div>
+           </td>
+         </tr>
+       </tbody>
+     </table>
   </div>
 );}

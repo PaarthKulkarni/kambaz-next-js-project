@@ -63,7 +63,11 @@ export default function Assignments() {
                   {assignment.title}
                 </Link>
                               <div className="text-secondary fs-5">
-              <span className = "text-danger">Multiple Modules </span>| <span className = "text-muted fw-bold">Not available until </span> {new Date(assignment.availDate + "T00:00:00").toDateString().split(' ').slice(1).join(' ')} at {assignment.availTime} <span className="fw-bold">Due </span> {new Date(assignment.dueDate + "T00:00:00").toDateString().split(' ').slice(1).join(' ')} at {assignment.dueTime} | {assignment.marks} pts
+              <span className = "text-danger">Multiple Modules </span>| <span className = "text-muted fw-bold">Not available until </span> 
+              {new Date(assignment.availDate + "T00:00:00").toDateString().split(' ').slice(1).join(' ')} at {" "}
+              {new Date("2000-01-01 " + assignment.availTime).toLocaleTimeString('en-US',{ hour: "numeric", minute : "numeric", hour12 : true})} <span className="fw-bold">Due </span> 
+              {new Date(assignment.dueDate + "T00:00:00").toDateString().split(' ').slice(1).join(' ')} at {" "}
+              {new Date("2000-01-01 " + assignment.dueTime).toLocaleTimeString('en-US',{ hour: "numeric", minute : "numeric", hour12 : true})} | {assignment.marks} pts
               </div>
             </div>
             </div>

@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ListGroup, ListGroupItem } from "react-bootstrap";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 export default function AccountNavigation() {
+  const { currentUser } = useSelector((state: RootState) => state.accountReducer);
   const path = usePathname();
-  const links = [
+  const links = currentUser ? [{ label: "Profile",  path: "Profile"}] : [
       { label: "Signin", path: `Signin`},
       { label: "Signup",   path: "Signup"},
-      { label: "Profile",  path: "Profile"},
     ];
   return (
     <ListGroup id="wd-courses-navigation"  className="wd list-group fs-5 rounded-0"> 

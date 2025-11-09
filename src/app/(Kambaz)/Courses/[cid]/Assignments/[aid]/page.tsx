@@ -5,32 +5,73 @@ import { Row, Col, Button, Form,FormGroup,FormLabel,FormControl,FormSelect,FormC
 import * as db from "../../../../Database";
 import {FaTimes} from 'react-icons/fa'; 
 import Link from "next/link";
+import { RootState } from "../../../../store";
+import { updateAssignment, addAssignment } from "../reducer";
+import { useSelector, useDispatch } from "react-redux";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AssignmentEditor() {
 const { cid, aid } = useParams();
-  const assignment = db.assignments.find(a => aid === a._id)
-  if (!assignment) {
+const dispatch = useDispatch();
+const router = useRouter();
+const isNew = aid === "new";
+const { currentUser } = useSelector(
+    (state: RootState) => state.accountReducer
+  );
+  const isFaculty = currentUser?.role === "FACULTY";
+const existingassignment = useSelector((state: RootState) =>
+  state.assignmentsReducer.assignments.find((a: any) => aid === a._id));
+const [assignment, setAssignment] = useState<any>(isNew ? {
+      _id: "0", title: "New Assignment", "course": cid, "marks" : 100,
+      "availDate" : "2024-05-06", "availTime": "00:00", "dueDate" : "2024-05-13", "dueTime" : "23:59", "desc" : "Description"
+      , "display" : "Percentage", "submission" : "Online", "assign" : "Everyone", "group" : "ASSIGNMENT"
+  } : existingassignment);
+  if (!isNew && !assignment) {
         return <div className="text-danger">Assignment with ID **{aid}** not found in the database.</div>;
     }
+
+    const handleSave = () => {
+      if (isNew) {
+        dispatch(addAssignment(assignment));
+      }
+      else {
+        dispatch(updateAssignment(assignment));
+      }
+      router.push(`/Courses/${cid}/Assignments`);
+    }
+
+    const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    setAssignment({
+      ...assignment,
+      [e.target.id]: e.target.value,
+    });
+  };
   return (
     <div id="wd-assignments-editor">
       <FormGroup className="mb-3">
-        <FormLabel htmlFor="wd-assignment-name" className="fw-bold">Assignment Name</FormLabel>
+        <FormLabel htmlFor="title" className="fw-bold">Assignment Name</FormLabel>
         <FormControl 
-          id="wd-assignment-name" 
+          id="title" 
           type="text" 
-          defaultValue={assignment.title}
+          value={assignment.title}
           placeholder="Enter Assignment Name"
+          onChange={handleChange}
+          readOnly = {!isFaculty}
         />
       </FormGroup>
 
       <FormGroup>
         <FormControl 
           as="textarea" 
-          id="wd-assignment-description" 
+          id="desc" 
           rows={5} 
           cols={50}
-          placeholder={assignment.desc}
+          value={assignment.desc}
+          onChange={handleChange}
+          readOnly = {!isFaculty}
           className="border"/>
         </FormGroup>
 
@@ -39,14 +80,13 @@ const { cid, aid } = useParams();
         <FormGroup as={Row} className="align-items-center">
           <FormLabel column sm="3" className="text-end fw-bold">Points</FormLabel>
           <Col>
-            <FormControl id="wd-points" type="number" defaultValue={assignment.marks}/>
+            <FormControl id="marks" type="number" value={assignment.marks} onChange={handleChange} readOnly = {!isFaculty}/>
           </Col>
         </FormGroup>
-
         <FormGroup as={Row} className="align-items-center">
           <FormLabel column sm="3" className="text-end fw-bold">Assignment Group</FormLabel>
           <Col>
-            <FormSelect id="wd-group" defaultValue="ASSIGNMENTS">
+            <FormSelect id="group" value={assignment.group} onChange = {handleChange} disabled = {!isFaculty}>
               <option>ASSIGNMENTS</option>
               <option>QUIZZES</option>
               <option>EXAMS</option>
@@ -58,7 +98,7 @@ const { cid, aid } = useParams();
         <FormGroup as={Row} className="align-items-center">
           <FormLabel column sm="3" className="text-end fw-bold">Display Grade as</FormLabel>
           <Col>
-            <FormSelect id="wd-display-grade-as" defaultValue="Percentage">
+            <FormSelect id="display" value={assignment.display} onChange={handleChange} disabled = {!isFaculty}>
               <option>Percentage</option>
               <option>Marks</option>
               <option>Grades</option>
@@ -70,17 +110,20 @@ const { cid, aid } = useParams();
           <FormLabel column sm="3" className="text-end fw-bold">Submission Type</FormLabel>
           <Col>
             <div className="border p-3">
-              <FormSelect id="wd-submission-type" defaultValue="Online" className="mb-3">
+              <FormSelect id="submission" value={assignment.submission} onChange = {handleChange} className="mb-3" disabled = {!isFaculty}>
                 <option>Online</option>
                 <option>OnSite</option>
               </FormSelect>
-
+              {isFaculty && assignment.submission === "Online" && (
+                <>
               <FormLabel className="fw-bold">Online Entry Options</FormLabel>
-              <FormCheck id="wd-text-entry" type="checkbox" label="Text Entry" />
-              <FormCheck id="wd-website-url" type="checkbox" label="Website URL" />
-              <FormCheck id="wd-media-recordings" type="checkbox" label="Media Recordings" />
-              <FormCheck id="wd-student-annotation" type="checkbox" label="Student Annotation" />
-              <FormCheck id="wd-file-upload" type="checkbox" label="File Uploads" />
+              <FormCheck id="wd-text-entry" type="checkbox" label="Text Entry" disabled = {!isFaculty}/>
+              <FormCheck id="wd-website-url" type="checkbox" label="Website URL" disabled = {!isFaculty}/>
+              <FormCheck id="wd-media-recordings" type="checkbox" label="Media Recordings" disabled = {!isFaculty} />
+              <FormCheck id="wd-student-annotation" type="checkbox" label="Student Annotation" disabled = {!isFaculty} />
+              <FormCheck id="wd-file-upload" type="checkbox" label="File Uploads" disabled = {!isFaculty}/>
+              </>
+              )}
             </div>
           </Col>
         </FormGroup>
@@ -92,9 +135,9 @@ const { cid, aid } = useParams();
             <div className="border p-3 rounded">
               
               <FormGroup className="mb-2">
-                <FormLabel htmlFor="wd-assign-to" className="fw-bold">Assign to</FormLabel>
+                <FormLabel htmlFor="assign" className="fw-bold">Assign to</FormLabel>
                 <div className="d-flex border rounded p-2 bg-light align-items-center justify-content-between">
-                    <FormControl id="wd-assign-to" type="text" defaultValue="Everyone" className="border-0 p-0 bg-light shadow-none"/>
+                    <FormControl id="assign" type="text" value={assignment.assign} onChange={handleChange} className="border-0 p-0 bg-light shadow-none"/>
                     <FaTimes className="text-muted" role="button" />
                 </div>
               </FormGroup>
@@ -105,7 +148,9 @@ const { cid, aid } = useParams();
                   <FormControl 
                     type="date" 
                     id="wd-due-date" 
-                    defaultValue={assignment.dueDate}
+                    value={assignment.dueDate}
+                    onChange={handleChange}
+                    readOnly = {!isFaculty}
                   />
                 </div>
               </FormGroup>
@@ -113,24 +158,28 @@ const { cid, aid } = useParams();
               <Row>
                 <Col sm={6}>
                   <FormGroup className="mb-2">
-                    <FormLabel htmlFor="wd-available-from" className="fw-bold">Available from</FormLabel>
+                    <FormLabel htmlFor="availDate" className="fw-bold">Available from</FormLabel>
                     <div className="d-flex align-items-center position-relative">
                       <FormControl 
                         type="date" 
-                        id="wd-available-from" 
-                        defaultValue={assignment.availDate}
+                        id="availDate" 
+                        value={assignment.availDate}
+                        onChange={handleChange}
+                        readOnly = {!isFaculty}
                       />
                     </div>
                   </FormGroup>
                 </Col>
                 <Col sm={6}>
                   <FormGroup className="mb-3">
-                    <FormLabel htmlFor="wd-available-until" className="fw-bold">Until</FormLabel>
+                    <FormLabel htmlFor="dueDate" className="fw-bold">Until</FormLabel>
                     <div className="d-flex align-items-center position-relative">
                       <FormControl 
                         type="date" 
-                        id="wd-available-until" 
-                        defaultValue={assignment.dueDate}
+                        id="dueDate" 
+                        value={assignment.dueDate}
+                        onChange={handleChange}
+                        readOnly = {!isFaculty}
                       />
                     </div>
                   </FormGroup>
@@ -144,12 +193,19 @@ const { cid, aid } = useParams();
       <hr/>
 
       <div className="d-flex justify-content-end">
+        {isFaculty && (
+          <>
         <Link href={`/Courses/${cid}/Assignments`}>
         <Button id="wd-cancel-btn" variant="light" className="border me-2">Cancel</Button>
         </Link>
-        <Link href={`/Courses/${cid}/Assignments`}>
-        <Button id="wd-save-btn" variant="danger">Save</Button>
+        <Button id="wd-save-btn" variant="danger" onClick={handleSave}>Save</Button>
+        </>
+        )}
+        {!isFaculty && (
+          <Link href={`/Courses/${cid}/Assignments`}>
+        <Button id="wd-cancel-btn" variant="light" className="border me-2">Back</Button>
         </Link>
+        )}
       </div>
     </div>
   );

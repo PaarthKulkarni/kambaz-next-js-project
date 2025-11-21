@@ -1,4 +1,5 @@
 "use client";
+import * as client from "../client";
 import Link from "next/link";
 import { redirect } from "next/dist/client/components/navigation";
 import { setCurrentUser } from "../reducer";
@@ -9,12 +10,8 @@ import { FormControl, Button } from "react-bootstrap";
 export default function Signin() {
    const [credentials, setCredentials] = useState<any>({});
  const dispatch = useDispatch();
- const signin = () => {
-   const user = db.users.find(
-     (u: any) =>
-       u.username === credentials.username &&
-       u.password === credentials.password
-   );
+ const signin = async () => {
+   const user =  await client.signin(credentials);
    if (!user) return;
    dispatch(setCurrentUser(user));
    redirect("/Dashboard");

@@ -10,6 +10,7 @@ import { updateAssignment, addAssignment } from "../reducer";
 import { useSelector, useDispatch } from "react-redux";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import * as client from "../../../client";
 
 export default function AssignmentEditor() {
 const { cid, aid } = useParams();
@@ -31,11 +32,13 @@ const [assignment, setAssignment] = useState<any>(isNew ? {
         return <div className="text-danger">Assignment with ID **{aid}** not found in the database.</div>;
     }
 
-    const handleSave = () => {
+    const handleSave = async () => {
       if (isNew) {
-        dispatch(addAssignment(assignment));
+        const newAssignment = await client.createAssignmentForCourse(cid as string, assignment);
+        dispatch(addAssignment(newAssignment));
       }
       else {
+        await client.updateAssignment(assignment);
         dispatch(updateAssignment(assignment));
       }
       router.push(`/Courses/${cid}/Assignments`);

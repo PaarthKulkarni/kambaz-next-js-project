@@ -1,14 +1,15 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as db from "../../../Database";
 import Link from "next/link";
 import { FaSearch, FaPlus, FaCheckCircle, FaEllipsisV, FaRegFileAlt, FaCaretDown, FaTrash } from "react-icons/fa";
 import { BsGripVertical } from "react-icons/bs";
 import { Button, ListGroup, ListGroupItem } from "react-bootstrap";
 import { RootState } from "../../../store";
-import { addAssignment, deleteAssignment } from "./reducer";
+import { addAssignment, deleteAssignment, setAssignment } from "./reducer";
 import { useSelector, useDispatch } from "react-redux";
+import * as client from "../../client"
 
 export default function Assignments() {
   const { cid } = useParams();
@@ -22,8 +23,19 @@ export default function Assignments() {
 
   const isFaculty = currentUser?.role === "FACULTY";
 
-  const handleDeleteAssignment = (assignmentId: string) => {
+  const fetchAssignments = async () => {
+    if (!cid) return;
+    const assignments = await client.findAssignmentsForCourse(cid as string);
+    dispatch(setAssignment(assignments));
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, [cid]);
+
+  const handleDeleteAssignment = async (assignmentId: string) => {
       if (window.confirm("This will remove the assignment. Do you want to Continue?")) {
+      await client.deleteAssignment(assignmentId);
       dispatch(deleteAssignment(assignmentId));
     }
   };

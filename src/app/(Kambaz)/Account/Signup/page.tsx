@@ -9,7 +9,7 @@ import * as client from "../client";
 import { useRouter } from "next/navigation";
 
 export default function Signup() {
-  const [user, setUser] = useState<any>({});
+  const [user, setUser] = useState<any>({ username: "", password: "" });
   const dispatch = useDispatch();
   const router = useRouter();
   const signup = async () => {

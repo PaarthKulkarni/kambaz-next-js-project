@@ -21,5 +21,11 @@ export default function AccountNavigation() {
       className={`list-group-item border-0 ${path.includes(link.label) ? "active" : "text-danger"}`}>
         {link.label}
       </ListGroupItem>);})}
+      {currentUser && currentUser.role === "ADMIN" && (
+        <ListGroupItem as={Link} href="/Account/Users"
+          className={`list-group-item border-0 ${path.endsWith('Users') ? "active" : "text-danger"}`}>
+          Users
+        </ListGroupItem>
+      )}
     </ListGroup>
   );}

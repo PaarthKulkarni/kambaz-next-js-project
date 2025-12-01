@@ -8,7 +8,6 @@ export type Enrollment = {
   course: string;
 };
 
-// 2. Cast the initial state to use that type
 const initialState = {
   enrollments: [] as Enrollment[], 
 };

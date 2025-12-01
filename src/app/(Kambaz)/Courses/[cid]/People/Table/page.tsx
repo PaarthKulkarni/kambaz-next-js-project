@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import * as client from "../../../../Account/client";
+import { findUsersByCourse } from "../../../client";
 import PeopleDetails from "../Details";
 
 export default function PeopleTable({ 
@@ -26,9 +27,11 @@ export default function PeopleTable({
 
   // 2. Helper to fetch data safely if props aren't provided
   const autoFetch = async () => {
+
+    if(!cid) return;
     try {
       // For Section 6.2, we fetch ALL users since Enrollments aren't ready yet.
-      const data = await client.findAllUsers();
+      const data = await findUsersByCourse(cid as string);
       if (Array.isArray(data)) {
         setLocalUsers(data);
       } else {
@@ -45,7 +48,7 @@ export default function PeopleTable({
     if (users.length === 0) {
       autoFetch();
     }
-  }, [users.length]);
+  }, [users.length, cid]);
 
   return (
     <div id="wd-people-table">

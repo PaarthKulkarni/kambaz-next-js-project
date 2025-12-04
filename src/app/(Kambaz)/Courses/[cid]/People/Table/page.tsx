@@ -19,32 +19,27 @@ export default function PeopleTable({
   const [showDetails, setShowDetails] = useState(false);
   const [showUserId, setShowUserId] = useState<string | null>(null);
   
-  // Local state for when we are viewing this as a standalone Page
   const [localUsers, setLocalUsers] = useState<any[]>([]);
 
-  // 1. Determine which users to show: Props (Admin) vs Local (Course Page)
   const usersToDisplay = users.length > 0 ? users : localUsers;
 
-  // 2. Helper to fetch data safely if props aren't provided
   const autoFetch = async () => {
 
     if(!cid) return;
     try {
-      // For Section 6.2, we fetch ALL users since Enrollments aren't ready yet.
       const data = await findUsersByCourse(cid as string);
       if (Array.isArray(data)) {
         setLocalUsers(data);
       } else {
-        setLocalUsers([]); // Safety: server returned object or error
+        setLocalUsers([]); 
       }
     } catch (err) {
       console.error(err);
-      setLocalUsers([]); // Safety: network error
+      setLocalUsers([]); 
     }
   };
 
   useEffect(() => {
-    // If no users provided via props, fetch them ourselves
     if (users.length === 0) {
       autoFetch();
     }

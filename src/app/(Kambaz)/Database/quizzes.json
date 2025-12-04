@@ -1,0 +1,73 @@
+{
+  "_id": "651a2b3c4d5e6f7a8b9c0d1e",
+  "title": "Midterm: Propulsion Fundamentals",
+  "course": "RS101",
+  "description": "This quiz covers the basics of rocket propulsion, including Newton's laws and standard fuel types.",
+  "quizType": "GRADED_QUIZ",
+  "points": 30,
+  "assignmentGroup": "QUIZZES",
+  "shuffleAnswers": true,
+  "timeLimit": 20,
+  "multipleAttempts": false,
+  "howManyAttempts": 1,
+  "showCorrectAnswers": "IMMEDIATELY",
+  "accessCode": "",
+  "oneQuestionAtTime": true,
+  "webcamRequired": false,
+  "lockQuestionsAfterAnswering": false,
+  "dueDate": "2024-12-15",
+  "dueTime": "23:59",
+  "availDate": "2024-12-01",
+  "availTime": "09:00",
+  "published": true,
+  "questions": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d1f",
+      "type": "MULTIPLE_CHOICE",
+      "title": "Oxidizers",
+      "points": 10,
+      "question": "Which of the following is commonly used as an oxidizer in liquid rocket engines?",
+      "choices": [
+        {
+          "text": "Liquid Oxygen",
+          "isCorrect": true
+        },
+        {
+          "text": "Kerosene",
+          "isCorrect": false
+        },
+        {
+          "text": "Liquid Hydrogen",
+          "isCorrect": false
+        },
+        {
+          "text": "Nitrogen",
+          "isCorrect": false
+        }
+      ],
+      "caseSensitive": false
+    },
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d20",
+      "type": "TRUE_FALSE",
+      "title": "Newton's Third Law",
+      "points": 10,
+      "question": "Newton's Third Law states that for every action, there is an equal and opposite reaction.",
+      "correctAnswer": true,
+      "caseSensitive": false
+    },
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d21",
+      "type": "FILL_IN_BLANK",
+      "title": "Thrust Definition",
+      "points": 10,
+      "question": "The force that propels a rocket upward is called _____.",
+      "possibleAnswers": [
+        "Thrust",
+        "thrust",
+        "THRUST"
+      ],
+      "caseSensitive": false
+    }
+  ]
+}

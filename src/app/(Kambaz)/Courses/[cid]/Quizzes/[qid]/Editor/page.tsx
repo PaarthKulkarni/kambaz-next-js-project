@@ -131,7 +131,7 @@ export default function QuizEditor() {
     const addQuestion = () => {
         const newQuestion = {
             _id: Date.now().toString(),
-            type: "MULTIPLE_CHOICE",
+            type: "SINGLE_CHOICE",
             title: `Question ${quiz.questions.length + 1}`,
             points: 10,
             question: "",
@@ -176,8 +176,18 @@ export default function QuizEditor() {
 
     const setCorrectChoice = (questionIndex: number, choiceIndex: number) => {
         const updatedQuestions = [...quiz.questions];
-        const choice = updatedQuestions[questionIndex].choices[choiceIndex];
-        choice.isCorrect = !choice.isCorrect;
+        const question = updatedQuestions[questionIndex];
+
+        // For single choice, uncheck all others first
+        if (question.type === "SINGLE_CHOICE") {
+            question.choices.forEach((choice: any) => {
+                choice.isCorrect = false;
+            });
+            question.choices[choiceIndex].isCorrect = true;
+        } else {
+            // For multiple choice, toggle the selected choice
+            question.choices[choiceIndex].isCorrect = !question.choices[choiceIndex].isCorrect;
+        }
 
         setQuiz({ ...quiz, questions: updatedQuestions });
     }
@@ -456,6 +466,7 @@ export default function QuizEditor() {
                                     <FormSelect
                                         value={question.type}
                                         onChange={(e) => handleQuestionChange(qIndex, "type", e.target.value)}>
+                                        <option value="SINGLE_CHOICE">Single Choice</option>
                                         <option value="MULTIPLE_CHOICE">Multiple Choice</option>
                                         <option value="TRUE_FALSE">True / False</option>
                                         <option value="FILL_IN_BLANK">Fill in the Blank</option>
@@ -489,14 +500,16 @@ export default function QuizEditor() {
                                 />
                             </FormGroup>
                             {/* MCQ, This is MCMC, for SCMC Need to change schema, need to change entries... headache. */}
-                            {question.type === "MULTIPLE_CHOICE" && (
+                            {(question.type === "SINGLE_CHOICE" || question.type === "MULTIPLE_CHOICE") && (
                                 <div>
-                                    <FormLabel className="fw-bold">Choices (Select box to mark as correct answer)</FormLabel>
+                                    <FormLabel className="fw-bold">
+                                        Choices ({question.type === "SINGLE_CHOICE" ? "Select one correct answer" : "Select all correct answers"})
+                                    </FormLabel>
                                     {question.choices.map((choice: any, cIndex: number) => (
                                         <div key={cIndex} className="d-flex align-items-center mb-2">
                                             <FormCheck
-                                                type="checkbox"
-                                                name = {`correctChoice-${qIndex}`}
+                                                type={question.type === "SINGLE_CHOICE" ? "radio" : "checkbox"}
+                                                name={`correctChoice-${qIndex}`}
                                                 checked={choice.isCorrect}
                                                 className="me-2"
                                                 onChange={() => setCorrectChoice(qIndex, cIndex)}

@@ -59,17 +59,18 @@ const [quiz, setQuiz] = useState<any>(isNew ? {
 
     const handleSave = async (Publish = false) => {
 
-      const quizToSave = { ...quiz, published: Publish ? true : quiz.published };  
-      if (isNew) {
-        const newQuiz = await client.createQuizForCourse(cid as string, quiz);
-        dispatch(addQuiz(newQuiz));
-      }
-      else {
-        await client.updateQuiz(quizToSave);
-        dispatch(updateQuiz(quizToSave));
-      }
-      router.push(`/Courses/${cid}/Quizzes`);
-    }
+  const quizToSave = { ...quiz, published: Publish ? true : quiz.published };  
+  if (isNew) {
+    const { _id, ...quizWithoutId } = quizToSave;
+    const newQuiz = await client.createQuizForCourse(cid as string, quizWithoutId);
+    dispatch(addQuiz(newQuiz));
+  }
+  else {
+    await client.updateQuiz(quizToSave);
+    dispatch(updateQuiz(quizToSave));
+  }
+  router.push(`/Courses/${cid}/Quizzes`);
+}
 
     const addQuestion = () => {
       const newQuestion = {

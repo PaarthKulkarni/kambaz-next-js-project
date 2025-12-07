@@ -54,6 +54,15 @@ export default function QuizPreview() {
   const dueDate = new Date(`${quiz?.dueDate}T${quiz?.dueTime}:00`);
   const isAvailable = now >= availableDate && now <= dueDate && quiz?.published;
 
+  // Clear attempt state when navigating to a new quiz
+  useEffect(() => {
+    dispatch(clearAttempt());
+    setAttempting(false);
+    setCurrentQuestionIndex(0);
+    setTimeRemaining(null);
+    setTimerActive(false);
+  }, [qid, dispatch]);
+
   // Timer effect
   useEffect(() => {
     if (!timerActive || !timeRemaining) return;

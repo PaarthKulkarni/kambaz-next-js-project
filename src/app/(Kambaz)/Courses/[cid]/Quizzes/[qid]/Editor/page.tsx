@@ -163,7 +163,10 @@ export default function QuizEditor() {
                 alert(`Question ${i + 1}: Please enter question text`);
                 return;
             }
-
+            if (!question.points || question.points <= 0) {
+                alert(`Question ${i + 1}: Points must be greater than 0`);
+                return;
+            }
             // Validate Single Choice and Multiple Choice questions
             if (question.type === "SINGLE_CHOICE" || question.type === "MULTIPLE_CHOICE") {
                 if (!question.choices || question.choices.length < 2) {

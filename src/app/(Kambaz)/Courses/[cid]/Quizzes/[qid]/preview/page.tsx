@@ -40,7 +40,7 @@ export default function QuizPreview() {
 
   const { currentAttempt, answers, submitted, results } = useSelector(
     (state: RootState) => state.quizAttemptsReducer
-  );
+  ) as any;
 
   const [loading, setLoading] = useState(false);
   const [attempting, setAttempting] = useState(false);
@@ -472,7 +472,8 @@ export default function QuizPreview() {
   // Results view after submission
   if (submitted && results) {
     const percentage = ((results.score / results.totalPoints) * 100).toFixed(1);
-    const passedThreshold = percentage >= 70;
+    const rawPercentage = (results.score / results.totalPoints) * 100;
+    const passedThreshold = rawPercentage >= 70;
 
     return (
       <Container className="mt-5 mb-5">

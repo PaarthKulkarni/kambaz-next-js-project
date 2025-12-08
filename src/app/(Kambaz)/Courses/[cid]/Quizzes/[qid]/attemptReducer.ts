@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   currentAttempt: null,
-  answers: [],
+  answers: [] as { questionId: string; selectedAnswer: any }[],
   submitted: false,
   results: null,
 };

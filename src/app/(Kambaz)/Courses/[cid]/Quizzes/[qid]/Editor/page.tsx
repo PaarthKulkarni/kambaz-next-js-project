@@ -15,7 +15,30 @@ import * as client from "../../../../client";
 import { time } from "console";
 import { title } from "process";
 import { text } from "stream/consumers";
-
+type QuizType = {
+    _id: string;
+    title: string;
+    course: string;
+    points: number;
+    timeLimit: number;
+    quizType: string;
+    availDate: string;
+    availTime: string;
+    dueDate: string;
+    dueTime: string;
+    description: string;
+    assignmentGroup: string;
+    published: boolean;
+    shuffleAnswers: boolean;
+    multipleAttempts: boolean;
+    howManyAttempts: number;
+    showCorrectAnswers: string;
+    accessCode: string;
+    oneQuestionAtTime: boolean;
+    webcamRequired: boolean;
+    lockQuestionsAfterAnswering: boolean;
+    questions: any[];
+};
 export default function QuizEditor() {
     const { cid, qid } = useParams();
     const dispatch = useDispatch();
@@ -28,12 +51,14 @@ export default function QuizEditor() {
 
     const [activeTab, setActiveTab] = useState("details");
 
-    const existingquiz = useSelector((state: RootState) =>
-        state.quizzesReducer.quizzes.find((q: any) => qid === q._id));
-    const [quiz, setQuiz] = useState<any>(isNew ? {
+    const existingquiz: QuizType | undefined = useSelector((state: RootState) =>
+        state.quizzesReducer.quizzes.find((q: any) => qid === q._id)
+    );
+
+    const defaultQuiz: QuizType = {
         _id: "0",
         title: "",
-        course: cid,
+        course: cid as string,
         points: 100,
         timeLimit: 20,
         quizType: "GRADED_QUIZ",
@@ -53,7 +78,11 @@ export default function QuizEditor() {
         webcamRequired: false,
         lockQuestionsAfterAnswering: false,
         questions: []
-    } : existingquiz);
+    };
+
+    const [quiz, setQuiz] = useState<QuizType>(
+        isNew ? defaultQuiz : (existingquiz || defaultQuiz)
+    );
     const calculatedPoints = React.useMemo(() => {
         return quiz.questions.reduce((sum: number, q: any) => sum + (parseInt(q.points) || 0), 0);
     }, [quiz.questions]);
@@ -61,6 +90,38 @@ export default function QuizEditor() {
     React.useEffect(() => {
         setQuiz((prev: any) => ({ ...prev, points: calculatedPoints }));
     }, [calculatedPoints]);
+    React.useEffect(() => {
+        if (!isNew && existingquiz) {
+            // Type guard: ensure existingquiz has questions array
+            const quizWithQuestions = existingquiz as QuizType;
+
+            if (quizWithQuestions.questions && Array.isArray(quizWithQuestions.questions)) {
+                const needsMigration = quizWithQuestions.questions.some((q: any) =>
+                    q.type === "FILL_IN_BLANK" && q.possibleAnswers && !q.blanks
+                );
+
+                if (needsMigration) {
+                    const migratedQuestions = quizWithQuestions.questions.map((q: any) => {
+                        if (q.type === "FILL_IN_BLANK" && q.possibleAnswers && !q.blanks) {
+                            return {
+                                ...q,
+                                blanks: [{
+                                    id: Date.now().toString(),
+                                    possibleAnswers: q.possibleAnswers
+                                }]
+                            };
+                        }
+                        return q;
+                    });
+
+                    setQuiz((prev) => ({
+                        ...prev,
+                        questions: migratedQuestions
+                    }));
+                }
+            }
+        }
+    }, [existingquiz, isNew]);
     if (!isNew && !quiz) {
         return <div className="text-danger">Quiz with ID **{qid}** not found in the database.</div>;
     }
@@ -102,12 +163,44 @@ export default function QuizEditor() {
                 }
             }
 
+
             // Validate Fill in the Blank questions
             if (question.type === "FILL_IN_BLANK") {
-                if (!question.possibleAnswers || question.possibleAnswers.length === 0 ||
-                    question.possibleAnswers.every((ans: string) => !ans.trim())) {
-                    alert(`Question ${i + 1}: Fill in the blank questions must have at least one correct answer`);
+                if (!question.blanks || question.blanks.length === 0) {
+                    alert(`Question ${i + 1}: Fill in the blank questions must have at least one blank`);
                     return;
+                }
+                if (!quiz.title.trim()) {
+                    alert("Please enter a quiz name");
+                    return;
+                }
+
+                if (quiz.timeLimit <= 0) {
+                    alert("Time limit must be greater than 0");
+                    return;
+                }
+
+                if (quiz.multipleAttempts && quiz.howManyAttempts <= 0) {
+                    alert("Number of attempts must be greater than 0");
+                    return;
+                }
+
+                if (new Date(quiz.availDate) >= new Date(quiz.dueDate)) {
+                    alert("Available date must be before the due date");
+                    return;
+                }
+
+                if (quiz.questions.length === 0) {
+                    alert("Please add at least one question to the quiz");
+                    return;
+                }
+                for (let j = 0; j < question.blanks.length; j++) {
+                    const blank = question.blanks[j];
+                    if (!blank.possibleAnswers || blank.possibleAnswers.length === 0 ||
+                        blank.possibleAnswers.every((ans: string) => !ans.trim())) {
+                        alert(`Question ${i + 1}, Blank ${j + 1}: Must have at least one correct answer`);
+                        return;
+                    }
                 }
             }
         }
@@ -153,6 +246,12 @@ export default function QuizEditor() {
     const handleQuestionChange = (index: number, field: string, value: any) => {
         const updatedQuestions = [...quiz.questions];
         updatedQuestions[index] = { ...updatedQuestions[index], [field]: value };
+
+        // Initialize blanks array when switching to FILL_IN_BLANK
+        if (field === "type" && value === "FILL_IN_BLANK" && !updatedQuestions[index].blanks) {
+            updatedQuestions[index].blanks = [];
+        }
+
         setQuiz({ ...quiz, questions: updatedQuestions });
     }
 
@@ -200,7 +299,31 @@ export default function QuizEditor() {
             questions: updatedQuestions,
         });
     }
+    // Fill in the Blank - Multiple Blanks functions
+    const addBlank = (questionIndex: number) => {
+        const updatedQuestions = [...quiz.questions];
+        if (!updatedQuestions[questionIndex].blanks) {
+            updatedQuestions[questionIndex].blanks = [];
+        }
+        updatedQuestions[questionIndex].blanks.push({
+            id: Date.now().toString(),
+            possibleAnswers: []
+        });
+        setQuiz({ ...quiz, questions: updatedQuestions });
+    }
 
+    const removeBlank = (questionIndex: number, blankIndex: number) => {
+        const updatedQuestions = [...quiz.questions];
+        updatedQuestions[questionIndex].blanks = updatedQuestions[questionIndex].blanks.filter((_: any, i: number) => i !== blankIndex);
+        setQuiz({ ...quiz, questions: updatedQuestions });
+    }
+
+    const updateBlankAnswers = (questionIndex: number, blankIndex: number, answersString: string) => {
+        const updatedQuestions = [...quiz.questions];
+        updatedQuestions[questionIndex].blanks[blankIndex].possibleAnswers =
+            answersString.split(",").map((ans) => ans.trim()).filter(ans => ans !== "");
+        setQuiz({ ...quiz, questions: updatedQuestions });
+    }
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
     ) => {
@@ -357,8 +480,8 @@ export default function QuizEditor() {
                             <Col>
                                 <FormSelect
                                     id="oneQuestionAtATime"
-                                    value={quiz.oneQuestionAtATime ? "true" : "false"}
-                                    onChange={(e) => setQuiz({ ...quiz, oneQuestionAtATime: e.target.value === "true" })}
+                                    value={quiz.oneQuestionAtTime ? "true" : "false"}
+                                    onChange={(e) => setQuiz({ ...quiz, oneQuestionAtTime: e.target.value === "true" })}
                                     disabled={!isFaculty}
                                 >
                                     <option value="true">Yes</option>
@@ -558,16 +681,56 @@ export default function QuizEditor() {
                                     />
                                 </div>
                             )}
-                            {/* FBI */}
+                            {/* Fill in the Blank - Multiple Blanks */}
                             {question.type === "FILL_IN_BLANK" && (
                                 <div>
-                                    <FormLabel className="fw-bold">Correct Answer</FormLabel>
-                                    <FormControl
-                                        type="text"
-                                        placeholder="Web, WebDev"
-                                        value={question.possibleAnswers ? question.possibleAnswers.join(", ") : ""}
-                                        onChange={(e) => handleQuestionChange(qIndex, "possibleAnswers", e.target.value.split(",").map((ans) => ans.trim()))}
-                                    />
+                                    <FormLabel className="fw-bold">Blanks</FormLabel>
+                                    <div className="text-muted small mb-2">
+                                        Add multiple blanks for your question.
+                                    </div>
+
+                                    {question.blanks && question.blanks.length > 0 ? (
+                                        question.blanks.map((blank: any, bIndex: number) => (
+                                            <div key={blank.id} className="border rounded p-3 mb-3 bg-light">
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <strong>Blank {bIndex + 1}</strong>
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        onClick={() => removeBlank(qIndex, bIndex)}
+                                                    >
+                                                        <FaTrash />
+                                                    </Button>
+                                                </div>
+                                                <FormGroup>
+                                                    <FormLabel className="small">Correct Answer</FormLabel>
+                                                    <FormControl
+                                                        type="text"
+                                                        placeholder="e.g., React, react.js, ReactJS"
+                                                        value={blank.possibleAnswers ? blank.possibleAnswers.join(", ") : ""}
+                                                        onChange={(e) => updateBlankAnswers(qIndex, bIndex, e.target.value)}
+                                                    />
+                                                    <Form.Text className="text-muted">
+
+                                                    </Form.Text>
+                                                </FormGroup>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-muted text-center p-3 border rounded mb-3">
+                                            No blanks added yet. Click "Add Blank" to create one.
+                                        </div>
+                                    )}
+
+                                    <div className="text-end">
+                                        <Button
+                                            variant="link"
+                                            onClick={() => addBlank(qIndex)}
+                                            className="text-decoration-none text-danger"
+                                        >
+                                            <FaPlus className="me-1" /> Add Blank
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </div>

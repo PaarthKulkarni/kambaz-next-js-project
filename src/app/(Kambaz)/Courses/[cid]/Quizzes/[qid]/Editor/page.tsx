@@ -127,7 +127,34 @@ export default function QuizEditor() {
     }
 
     const handleSave = async (Publish = false) => {
-        // Validate questions before saving
+        // Validate quiz title FIRST - before anything else
+        if (!quiz.title.trim()) {
+            alert("Please enter a quiz name before saving");
+            return;
+        }
+
+        // Validate other quiz-level fields
+        if (quiz.timeLimit <= 0) {
+            alert("Time limit must be greater than 0");
+            return;
+        }
+
+        if (quiz.multipleAttempts && quiz.howManyAttempts <= 0) {
+            alert("Number of attempts must be greater than 0");
+            return;
+        }
+
+        if (new Date(quiz.availDate) >= new Date(quiz.dueDate)) {
+            alert("Available date must be before the due date");
+            return;
+        }
+
+        if (quiz.questions.length === 0) {
+            alert("Please add at least one question to the quiz");
+            return;
+        }
+
+        // Validate questions
         for (let i = 0; i < quiz.questions.length; i++) {
             const question = quiz.questions[i];
 
@@ -163,37 +190,13 @@ export default function QuizEditor() {
                 }
             }
 
-
             // Validate Fill in the Blank questions
             if (question.type === "FILL_IN_BLANK") {
                 if (!question.blanks || question.blanks.length === 0) {
                     alert(`Question ${i + 1}: Fill in the blank questions must have at least one blank`);
                     return;
                 }
-                if (!quiz.title.trim()) {
-                    alert("Please enter a quiz name");
-                    return;
-                }
 
-                if (quiz.timeLimit <= 0) {
-                    alert("Time limit must be greater than 0");
-                    return;
-                }
-
-                if (quiz.multipleAttempts && quiz.howManyAttempts <= 0) {
-                    alert("Number of attempts must be greater than 0");
-                    return;
-                }
-
-                if (new Date(quiz.availDate) >= new Date(quiz.dueDate)) {
-                    alert("Available date must be before the due date");
-                    return;
-                }
-
-                if (quiz.questions.length === 0) {
-                    alert("Please add at least one question to the quiz");
-                    return;
-                }
                 for (let j = 0; j < question.blanks.length; j++) {
                     const blank = question.blanks[j];
                     if (!blank.possibleAnswers || blank.possibleAnswers.length === 0 ||

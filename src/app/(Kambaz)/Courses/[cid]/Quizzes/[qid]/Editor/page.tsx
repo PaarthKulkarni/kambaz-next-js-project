@@ -263,7 +263,10 @@ export default function QuizEditor() {
 
     const addChoice = (questionIndex: number) => {
         const updatedQuestions = [...quiz.questions];
-        updatedQuestions[questionIndex].choices.push({ text: "", isCorrect: false });
+        updatedQuestions[questionIndex] = {
+            ...updatedQuestions[questionIndex],
+            choices: [...updatedQuestions[questionIndex].choices, { text: "", isCorrect: false }]
+        };
         setQuiz({
             ...quiz,
             questions: updatedQuestions,
@@ -272,34 +275,47 @@ export default function QuizEditor() {
 
     const updateChoice = (questionIndex: number, choiceIndex: number, text: string) => {
         const updatedQuestions = [...quiz.questions];
-        updatedQuestions[questionIndex].choices[choiceIndex].text = text;
+        updatedQuestions[questionIndex] = {
+            ...updatedQuestions[questionIndex],
+            choices: updatedQuestions[questionIndex].choices.map((choice: any, idx: number) =>
+                idx === choiceIndex ? { ...choice, text } : choice
+            )
+        };
         setQuiz({
             ...quiz,
             questions: updatedQuestions,
         });
     }
-
     const setCorrectChoice = (questionIndex: number, choiceIndex: number) => {
         const updatedQuestions = [...quiz.questions];
         const question = updatedQuestions[questionIndex];
 
-        // For single choice, uncheck all others first
+        let newChoices;
         if (question.type === "SINGLE_CHOICE") {
-            question.choices.forEach((choice: any) => {
-                choice.isCorrect = false;
-            });
-            question.choices[choiceIndex].isCorrect = true;
+            newChoices = question.choices.map((choice: any, idx: number) => ({
+                ...choice,
+                isCorrect: idx === choiceIndex
+            }));
         } else {
-            // For multiple choice, toggle the selected choice
-            question.choices[choiceIndex].isCorrect = !question.choices[choiceIndex].isCorrect;
+            newChoices = question.choices.map((choice: any, idx: number) =>
+                idx === choiceIndex ? { ...choice, isCorrect: !choice.isCorrect } : choice
+            );
         }
+
+        updatedQuestions[questionIndex] = {
+            ...updatedQuestions[questionIndex],
+            choices: newChoices
+        };
 
         setQuiz({ ...quiz, questions: updatedQuestions });
     }
 
     const removeChoice = (questionIndex: number, choiceIndex: number) => {
         const updatedQuestions = [...quiz.questions];
-        updatedQuestions[questionIndex].choices = updatedQuestions[questionIndex].choices.filter((_:any, i: number) => i !== choiceIndex);
+        updatedQuestions[questionIndex] = {
+            ...updatedQuestions[questionIndex],
+            choices: updatedQuestions[questionIndex].choices.filter((_: any, i: number) => i !== choiceIndex)
+        };
         setQuiz({
             ...quiz,
             questions: updatedQuestions,

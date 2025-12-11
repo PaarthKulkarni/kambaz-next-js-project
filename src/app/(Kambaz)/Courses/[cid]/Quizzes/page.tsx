@@ -94,6 +94,7 @@ export default function Quizzes() {
           </div>
         </ListGroupItem>
         {isFaculty && (quizzes.filter((quiz: any) => quiz.course === cid && quiz.title.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a: any, b: any) => a.availDate.localeCompare(b.availDate))
         .map((quiz: any) => (
           <ListGroupItem
             key={quiz._id}
@@ -155,6 +156,7 @@ export default function Quizzes() {
         </ListGroupItem>
         )))}
         {!isFaculty && (quizzes.filter((quiz: any) => quiz.course === cid && quiz.published === true && quiz.title.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a: any, b: any) => a.availDate.localeCompare(b.availDate))
         .map((quiz: any) => (
           <ListGroupItem
             key={quiz._id}

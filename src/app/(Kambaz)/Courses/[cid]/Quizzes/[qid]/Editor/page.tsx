@@ -153,6 +153,12 @@ export default function QuizEditor() {
     const handleQuestionChange = (index: number, field: string, value: any) => {
         const updatedQuestions = [...quiz.questions];
         updatedQuestions[index] = { ...updatedQuestions[index], [field]: value };
+
+        // Initialize blanks array when switching to FILL_IN_BLANK
+        if (field === "type" && value === "FILL_IN_BLANK" && !updatedQuestions[index].blanks) {
+            updatedQuestions[index].blanks = [];
+        }
+
         setQuiz({ ...quiz, questions: updatedQuestions });
     }
 
@@ -199,6 +205,32 @@ export default function QuizEditor() {
             ...quiz,
             questions: updatedQuestions,
         });
+    }
+
+    // Fill in the Blank - Multiple Blanks functions
+    const addBlank = (questionIndex: number) => {
+        const updatedQuestions = [...quiz.questions];
+        if (!updatedQuestions[questionIndex].blanks) {
+            updatedQuestions[questionIndex].blanks = [];
+        }
+        updatedQuestions[questionIndex].blanks.push({
+            id: Date.now().toString(),
+            possibleAnswers: []
+        });
+        setQuiz({ ...quiz, questions: updatedQuestions });
+    }
+
+    const removeBlank = (questionIndex: number, blankIndex: number) => {
+        const updatedQuestions = [...quiz.questions];
+        updatedQuestions[questionIndex].blanks = updatedQuestions[questionIndex].blanks.filter((_: any, i: number) => i !== blankIndex);
+        setQuiz({ ...quiz, questions: updatedQuestions });
+    }
+
+    const updateBlankAnswers = (questionIndex: number, blankIndex: number, answersString: string) => {
+        const updatedQuestions = [...quiz.questions];
+        updatedQuestions[questionIndex].blanks[blankIndex].possibleAnswers =
+            answersString.split(",").map((ans) => ans.trim()).filter(ans => ans !== "");
+        setQuiz({ ...quiz, questions: updatedQuestions });
     }
 
     const handleChange = (
@@ -561,13 +593,53 @@ export default function QuizEditor() {
                             {/* FBI */}
                             {question.type === "FILL_IN_BLANK" && (
                                 <div>
-                                    <FormLabel className="fw-bold">Correct Answer</FormLabel>
-                                    <FormControl
-                                        type="text"
-                                        placeholder="Web, WebDev"
-                                        value={question.possibleAnswers ? question.possibleAnswers.join(", ") : ""}
-                                        onChange={(e) => handleQuestionChange(qIndex, "possibleAnswers", e.target.value.split(",").map((ans) => ans.trim()))}
-                                    />
+                                    <FormLabel className="fw-bold">Blanks</FormLabel>
+                                    <div className="text-muted small mb-2">
+                                        Add multiple blanks for your question.
+                                    </div>
+
+                                    {question.blanks && question.blanks.length > 0 ? (
+                                        question.blanks.map((blank: any, bIndex: number) => (
+                                            <div key={blank.id} className="border rounded p-3 mb-3 bg-light">
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <strong>Blank {bIndex + 1}</strong>
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        onClick={() => removeBlank(qIndex, bIndex)}
+                                                    >
+                                                        <FaTrash />
+                                                    </Button>
+                                                </div>
+                                                <FormGroup>
+                                                    <FormLabel className="small">Correct Answer</FormLabel>
+                                                    <FormControl
+                                                        type="text"
+                                                        placeholder="e.g., React, react.js, ReactJS"
+                                                        value={blank.possibleAnswers ? blank.possibleAnswers.join(", ") : ""}
+                                                        onChange={(e) => updateBlankAnswers(qIndex, bIndex, e.target.value)}
+                                                    />
+                                                    <Form.Text className="text-muted">
+                                                        Enter multiple answers separated by commas for case-insensitive matching
+                                                    </Form.Text>
+                                                </FormGroup>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-muted text-center p-3 border rounded mb-3">
+                                            No blanks added yet. Click "Add Blank" to create one.
+                                        </div>
+                                    )}
+
+                                    <div className="text-end">
+                                        <Button
+                                            variant="link"
+                                            onClick={() => addBlank(qIndex)}
+                                            className="text-decoration-none text-danger"
+                                        >
+                                            <FaPlus className="me-1" /> Add Blank
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </div>

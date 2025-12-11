@@ -528,17 +528,17 @@ export default function QuizPreview() {
                         <strong>Your Answer:</strong>{" "}
                         {String(answer.selectedAnswer)}
                       </p>
-                      {!answer.isCorrect && (
-                        <p className="mb-0 text-success">
-                          <strong>Correct Answer:</strong>{" "}
-                          {question?.type === "MULTIPLE_CHOICE"
-                            ? question?.choices.find((c: any) => c.isCorrect)
-                                ?.text
-                            : question?.type === "TRUE_FALSE"
-                            ? String(question?.correctAnswer)
-                            : question?.possibleAnswers?.join(", ")}
-                        </p>
-                      )}
+                      <p className="mb-0 text-success">
+                        <strong>Correct Answer:</strong>{" "}
+                        {question?.type === "MULTIPLE_CHOICE"
+                          ? question?.choices.find((c: any) => c.isCorrect)
+                              ?.text
+                          : question?.type === "TRUE_FALSE"
+                          ? String(question?.correctAnswer)
+                          : question?.blanks
+                          ? question?.blanks.map((b: any) => b.possibleAnswers?.join(", ")).join(" | ")
+                          : question?.possibleAnswers?.join(", ")}
+                      </p>
                       <small className="text-muted">
                         {answer.isCorrect ? "Correct" : "Incorrect"} -{" "}
                         {question?.points} points

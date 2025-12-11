@@ -9,7 +9,7 @@ const People_API = `${HTTP_SERVER}/api/people`;
 const QUIZZES_API = `${HTTP_SERVER}/api/quizzes`;
 
 export const createModuleForCourse = async (courseId: string, module: any) => {
-  const response = await axios.post(
+  const response = await axiosWithCredentials.post(
     `${COURSES_API}/${courseId}/modules`,
     module
   );
@@ -60,14 +60,14 @@ export const findModulesForCourse = async (courseId: string) => {
 
 const MODULES_API = `${HTTP_SERVER}/api/modules`;
 export const deleteModule = async (courseId: string, moduleId: string) => {
-  const response = await axios.delete(
+  const response = await axiosWithCredentials.delete(
     `${COURSES_API}/${courseId}/modules/${moduleId}`
   );
   return response.data;
 };
 
 export const updateModule = async (courseId: string, module: any) => {
-  const { data } = await axios.put(
+  const { data } = await axiosWithCredentials.put(
     `${COURSES_API}/${courseId}/modules/${module._id}`,
     module
   );
@@ -200,8 +200,8 @@ export const deleteQuiz = async (quizId: string) => {
 };
 
 export const updateQuiz = async (quiz: any) => {
-  const response = await axios.put(`${QUIZZES_API}/${quiz._id}`, quiz);
-  return response.data;
+    const response = await axiosWithCredentials.put(`${QUIZZES_API}/${quiz._id}`, quiz);
+    return response.data;
 };
 
 export const createQuizForCourse = async (courseId: string, quiz: any) => {

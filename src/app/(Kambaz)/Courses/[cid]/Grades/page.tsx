@@ -45,7 +45,7 @@ export default function Grades() {
             const submittedAttempts = attempts.filter((a: any) => a.status === "SUBMITTED");
             let maxScore = 0;
             if (submittedAttempts.length > 0) {
-                maxScore = Math.max(...attempts.map((a: any) => a.score));
+                maxScore = Math.max(...submittedAttempts.map((a: any) => a.score));
             }
 
             stats[q._id] = {

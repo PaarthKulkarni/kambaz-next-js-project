@@ -99,8 +99,25 @@ export default function QuizPreview() {
     }
   };
 
-  const handleAnswerChange = (questionId: string, selectedAnswer: any) => {
-    dispatch(updateAnswer({ questionId, selectedAnswer }));
+  const handleAnswerChange = (questionId: string, selectedAnswer: any, isMultipleChoice: boolean = false) => {
+    if (isMultipleChoice) {
+      // For multiple choice, handle array of answers
+      const currentAnswers = answers.find((a: any) => a.questionId === questionId)?.selectedAnswer || [];
+      const updatedAnswers = Array.isArray(currentAnswers) ? [...currentAnswers] : [];
+      
+      if (updatedAnswers.includes(selectedAnswer)) {
+        // Remove if already selected
+        updatedAnswers.splice(updatedAnswers.indexOf(selectedAnswer), 1);
+      } else {
+        // Add if not selected
+        updatedAnswers.push(selectedAnswer);
+      }
+      
+      dispatch(updateAnswer({ questionId, selectedAnswer: updatedAnswers }));
+    } else {
+      // For single choice and other types
+      dispatch(updateAnswer({ questionId, selectedAnswer }));
+    }
   };
 
   const handleSubmitQuiz = async () => {
@@ -343,21 +360,28 @@ export default function QuizPreview() {
 
               {(currentQuestion.type === "SINGLE_CHOICE" || currentQuestion.type === "MULTIPLE_CHOICE") && (
                 <div className="choices">
-                  {currentQuestion.choices.map((choice: any, idx: number) => (
-                    <Form.Check
-                      key={idx}
-                      type={currentQuestion.type === "SINGLE_CHOICE" ? "radio" : "checkbox"}
-                      id={`choice-${idx}`}
-                      name={`question-${currentQuestion._id}`}
-                      label={choice.text}
-                      value={choice.text}
-                      checked={currentAnswer?.selectedAnswer === choice.text}
-                      onChange={() =>
-                        handleAnswerChange(currentQuestion._id, choice.text)
-                      }
-                      className="mb-2"
-                    />
-                  ))}
+                  {currentQuestion.choices.map((choice: any, idx: number) => {
+                    const isMultipleChoice = currentQuestion.type === "MULTIPLE_CHOICE";
+                    const isChecked = isMultipleChoice
+                      ? Array.isArray(currentAnswer?.selectedAnswer) && currentAnswer.selectedAnswer.includes(choice.text)
+                      : currentAnswer?.selectedAnswer === choice.text;
+                    
+                    return (
+                      <Form.Check
+                        key={idx}
+                        type={isMultipleChoice ? "checkbox" : "radio"}
+                        id={`choice-${idx}`}
+                        name={`question-${currentQuestion._id}`}
+                        label={choice.text}
+                        value={choice.text}
+                        checked={isChecked}
+                        onChange={() =>
+                          handleAnswerChange(currentQuestion._id, choice.text, isMultipleChoice)
+                        }
+                        className="mb-2"
+                      />
+                    );
+                  })}
                 </div>
               )}
 

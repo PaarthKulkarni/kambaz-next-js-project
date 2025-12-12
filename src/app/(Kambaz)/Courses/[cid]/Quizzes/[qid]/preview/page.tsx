@@ -346,6 +346,26 @@ export default function QuizPreview() {
                   {currentQuestion.choices.map((choice: any, idx: number) => (
                     <Form.Check
                       key={idx}
+                      type="checkbox"
+                      id={`choice-${idx}`}
+                      name={`question-${currentQuestion._id}`}
+                      label={choice.text}
+                      value={choice.text}
+                      checked={currentAnswer?.selectedAnswer === choice.text}
+                      onChange={() =>
+                        handleAnswerChange(currentQuestion._id, choice.text)
+                      }
+                      className="mb-2"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {currentQuestion.type === "SINGLE_CHOICE" && (
+                <div className="choices">
+                  {currentQuestion.choices.map((choice: any, idx: number) => (
+                    <Form.Check
+                      key={idx}
                       type="radio"
                       id={`choice-${idx}`}
                       name={`question-${currentQuestion._id}`}

@@ -555,8 +555,10 @@ export default function QuizPreview() {
                       <p className="mb-0 text-success">
                         <strong>Correct Answer:</strong>{" "}
                         {(question?.type === "SINGLE_CHOICE" || question?.type === "MULTIPLE_CHOICE")
-                          ? question?.choices.find((c: any) => c.isCorrect)
-                              ?.text
+                          ? question?.choices
+                              .filter((c: any) => c.isCorrect)
+                              .map((c: any) => c.text)
+                              .join(", ")
                           : question?.type === "TRUE_FALSE"
                           ? String(question?.correctAnswer)
                           : question?.blanks

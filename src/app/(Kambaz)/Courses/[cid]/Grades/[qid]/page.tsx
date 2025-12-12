@@ -51,7 +51,12 @@ export default function GradeDetails() {
         case "SINGLE_CHOICE":
             return question.choices.filter((c: any) => c.isCorrect).map((c: any) => c.text).join(", ");
         case "FILL_IN_BLANK":
-            return question.possibleAnswers.join(", ");
+            if (question.blanks) {
+                return question.blanks
+                    .map((b: any) => b.possibleAnswers?.join(", "))
+                    .join(" | ");
+            }
+            return question.possibleAnswers?.join(", ") || "";
         default:
             return "";
     }

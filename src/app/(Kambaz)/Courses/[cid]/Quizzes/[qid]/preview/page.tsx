@@ -341,12 +341,12 @@ export default function QuizPreview() {
                 dangerouslySetInnerHTML={{ __html: currentQuestion.question }}
               />
 
-              {currentQuestion.type === "MULTIPLE_CHOICE" && (
+              {(currentQuestion.type === "SINGLE_CHOICE" || currentQuestion.type === "MULTIPLE_CHOICE") && (
                 <div className="choices">
                   {currentQuestion.choices.map((choice: any, idx: number) => (
                     <Form.Check
                       key={idx}
-                      type="radio"
+                      type={currentQuestion.type === "SINGLE_CHOICE" ? "radio" : "checkbox"}
                       id={`choice-${idx}`}
                       name={`question-${currentQuestion._id}`}
                       label={choice.text}
@@ -530,13 +530,15 @@ export default function QuizPreview() {
                       </p>
                       <p className="mb-0 text-success">
                         <strong>Correct Answer:</strong>{" "}
-                        {question?.type === "MULTIPLE_CHOICE"
+                        {(question?.type === "SINGLE_CHOICE" || question?.type === "MULTIPLE_CHOICE")
                           ? question?.choices.find((c: any) => c.isCorrect)
                               ?.text
                           : question?.type === "TRUE_FALSE"
                           ? String(question?.correctAnswer)
                           : question?.blanks
-                          ? question?.blanks.map((b: any) => b.possibleAnswers?.join(", ")).join(" | ")
+                          ? question?.blanks
+                              .map((b: any) => b.possibleAnswers?.join(", "))
+                              .join(" | ")
                           : question?.possibleAnswers?.join(", ")}
                       </p>
                       <small className="text-muted">

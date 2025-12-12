@@ -22,11 +22,12 @@ export default function GradeDetails() {
             setQuiz(q);
 
             const att = await client.getStudentAttempts(qid as string);
-            setAttempts(att);
-            
-            if (att && att.length > 0) {
-                setActiveAttempt(att[0]);
-            }
+            const submittedAttempts = att.filter((a: any) => a.status === "SUBMITTED");
+          setAttempts(submittedAttempts);
+          
+          if (submittedAttempts && submittedAttempts.length > 0) {
+              setActiveAttempt(submittedAttempts[0]);
+          }
         } catch (error) {
             console.error(error);
         } finally {

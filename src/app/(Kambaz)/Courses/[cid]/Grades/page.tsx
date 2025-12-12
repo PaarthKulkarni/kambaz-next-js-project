@@ -42,14 +42,14 @@ export default function Grades() {
         filteredQuizzes.map(async (q: any) => {
           try {
             const attempts = await client.getStudentAttempts(q._id);
-            
+            const submittedAttempts = att.filter((a: any) => a.status === "SUBMITTED");
             let maxScore = 0;
-            if (attempts.length > 0) {
+            if (submittedAttempts.length > 0) {
                 maxScore = Math.max(...attempts.map((a: any) => a.score));
             }
 
             stats[q._id] = {
-                count: attempts.length,
+                count: submittedAttempts.length,
                 maxScore: maxScore
             };
           } catch (error) {
